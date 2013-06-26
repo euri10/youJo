@@ -6,7 +6,7 @@ import gdata.youtube.service
 import os
 import subprocess
 
-directoryBase = '/home/lotso/Desktop/Ben/'
+directoryBase = '/media/raid5/youJo/'
 def createYouJoVideo(directoryBase,filename, soundExt, imageExt):
     '''create a video from an image and a sound'''
     output='/tmp/video.mp4'
@@ -60,13 +60,11 @@ def createTree(directoryBase):
     cover/ directory'''
     treeList=[]
     for filesound in os.walk(os.path.join(directoryBase,'sound')):
-#        print '---files----'
         print filesound[2]
         for i in filesound[2]:
             tmpfileS , tmpextS = os.path.splitext(i)
             tmp = {'name' : tmpfileS, 'soundext': tmpextS, 'imageext':None} 
             for fileimage in os.walk(os.path.join(directoryBase,'cover')):
-#                print '---image--'
                 if len(fileimage[2]) > 0:
                     for j in fileimage[2]:
                         tmpfileI, tmpextI = os.path.splitext(j)
@@ -77,12 +75,12 @@ def createTree(directoryBase):
                         treeList.append(tmp)
                 else:
                     print '>>> No image in folder /cover for ' + tmpfileS + tmpextS + ' <<<'
-#                print treeList
     return treeList
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='mux sound and images files into a video and upload to youTube')
     parser.add_argument('-u', '--upload', help='upload to youTube', action='store_true')
+    
     args = parser.parse_args()
     print args
     f = open(os.path.join(directoryBase,'config.yaml'))
