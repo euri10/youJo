@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import discogs_client
 import yaml
 import argparse
 import gdata.youtube
@@ -91,6 +92,9 @@ if __name__ == '__main__':
     for items in toEncode:
         print items
         if items['imageext'] != None:
+            discogs_client.Search(items['name'])
+            :wq
+
             createYouJoVideo(directoryBase,items['name'],items['soundext'],items['imageext'])
             videoToUpload = os.path.join(directoryBase, 'toUpload', items['name']+'mp4')
             print items['name']
