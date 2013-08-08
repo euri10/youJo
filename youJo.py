@@ -14,7 +14,7 @@ def createYouJoVideo(directoryBase,filename, soundExt, imageExt):
     soundPath = os.path.join(directoryBase, 'sound',filename+soundExt)
     imagePath = os.path.join(directoryBase, 'cover',filename+imageExt)
 #    SCALE = "scale='max(sar,1)*iw':'max(1/sar,1)*ih'"
-    args = ['avconv', '-y', '-i', soundPath, '-f', 'image2', '-loop', '1', '-r', '1', '-vf', 'scale=720:-1', '-i', imagePath, '-shortest', '-acodec', 'aac', '-strict', 'experimental', '-vcodec', 'libx264', '-crf', '23', '-preset', 'veryfast', output]
+    args = ['avconv', '-y', '-i', soundPath, '-f', 'image2', '-loop', '1', '-r', '1',  '-i', imagePath, '-vf', 'scale=trunc(oh/a/2)*2:720', '-shortest', '-acodec', 'aac', '-strict', 'experimental', '-vcodec', 'libx264', '-crf', '23', '-preset', 'veryfast', output]
     proc = subprocess.Popen(args, shell=False) 
     outp, errors =  proc.communicate()
     if proc.returncode:
@@ -27,7 +27,14 @@ def createYouJoVideo(directoryBase,filename, soundExt, imageExt):
         proc3= subprocess.Popen(args3, shell=False)
         proc4= subprocess.Popen(args4, shell=False)
 
-
+def youDiscogs(release_id):
+    d = discogs_client
+    d.user_agent = 'youJo'
+    r=d.Release(release_id)
+    youdisc = { 'artist':r.artists , 'title':r.title , 'labels':r.labels, 'genres':r.data['genres'], 'styles':r.data['styles'], 'year':r.data['year']}
+    return youdisc
+    
+    
 def uploadYouJoVideo(directoryBase, filename, uploadConfig):
     '''uploads a video to youtube, config.yaml holds the necessary config files'''
     # A complete client login request
@@ -38,13 +45,23 @@ def uploadYouJoVideo(directoryBase, filename, uploadConfig):
     yt_service.developer_key = uploadConfig['upload_config']['developer_key']
     yt_service.client_id = uploadConfig['upload_config']['client_id']
     yt_service.ProgrammaticLogin()
+    
+    youdiscogs=youDiscogs(filename)
+    print youdiscogs
+    description = []
+    for key in youdiscogs.keys():
+        for i in youdiscogs[key]:
+            if key != 'title' or key != 'artist':
+                print i
+                description.append(' #'+i)
+    print description
 
     # prepare a media group object to hold our video's meta-data
     my_media_group = gdata.media.Group(\
-            title=gdata.media.Title(text= filename),\
-            description=gdata.media.Description(description_type='plain',text='No description'),\
+            title=gdata.media.Title(text= youdiscogs['title']),\
+            description=gdata.media.Description(description_type='plain',text=description),\
             category=gdata.media.Category(text='Music',scheme='http://gdata.youtube.com/schemas/2007/categories.cat',label='Music'),\
-            keywords=gdata.media.Keywords(text='reggae'),\
+            keywords=gdata.media.Keywords(text=youdiscogs['genre']),\
             player=None)
     # create the gdata.youtube.YouTubeVideoEntry to be uploaded
     video_entry = gdata.youtube.YouTubeVideoEntry(media=my_media_group)
@@ -71,11 +88,10 @@ def createTree(directoryBase):
                         tmpfileI, tmpextI = os.path.splitext(j)
                         if tmpfileI == tmpfileS:
                             tmp['imageext'] = tmpextI
-                        else:
-                            print 'NO IMAGE'
-                        treeList.append(tmp)
+                            treeList.append(tmp)
                 else:
                     print '>>> No image in folder /cover for ' + tmpfileS + tmpextS + ' <<<'
+#    print treeList
     return treeList
 
 if __name__ == '__main__':
@@ -90,15 +106,12 @@ if __name__ == '__main__':
     print dataMap
     toEncode = createTree(directoryBase)
     for items in toEncode:
-        print items
+        print "item to perform %(name)s" %items
         if items['imageext'] != None:
-            discogs_client.Search(items['name'])
-            :wq
-
             createYouJoVideo(directoryBase,items['name'],items['soundext'],items['imageext'])
             videoToUpload = os.path.join(directoryBase, 'toUpload', items['name']+'mp4')
-            print items['name']
+            print "Done converting with" + items['name']
             if args.upload :
                 uploadYouJoVideo(directoryBase, items['name'], dataMap)
-
-    
+    #uploadYouJoVideo(directoryBase,'140702',dataMap)
+            print "Next item-------------------------------------------"
