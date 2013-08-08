@@ -14,7 +14,7 @@ def createYouJoVideo(directoryBase,filename, soundExt, imageExt):
     soundPath = os.path.join(directoryBase, 'sound',filename+soundExt)
     imagePath = os.path.join(directoryBase, 'cover',filename+imageExt)
 #    SCALE = "scale='max(sar,1)*iw':'max(1/sar,1)*ih'"
-    args = ['avconv', '-y', '-i', soundPath, '-f', 'image2', '-loop', '1', '-r', '1',  '-i', imagePath, '-vf', 'scale=trunc(oh/a/2)*2:720', '-shortest', '-acodec', 'aac', '-strict', 'experimental', '-vcodec', 'libx264', '-crf', '23', '-preset', 'veryfast', output]
+    args = ['avconv', '-y', '-i', soundPath, '-f', 'image2', '-loop', '1', '-r', '1',  '-i', imagePath, '-vf', 'scale=trunc(oh*a*2)/2:720', '-shortest', '-acodec', 'aac', '-strict', 'experimental', '-vcodec', 'libx264', '-crf', '23', '-preset', 'veryfast', output]
     proc = subprocess.Popen(args, shell=False) 
     outp, errors =  proc.communicate()
     if proc.returncode:
